@@ -74,7 +74,11 @@
 /* A10 has 1 banks of DRAM, we use only bank 1 in U-Boot */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_0			CONFIG_SYS_SDRAM_BASE
+#ifdef CONFIG_SUN7I
+#define PHYS_SDRAM_0_SIZE		0x80000000
+#else
 #define PHYS_SDRAM_0_SIZE		0x40000000
+#endif
 #if 0
 /* Nand config */
 #define CONFIG_NAND
@@ -167,16 +171,8 @@
 #define CONFIG_BOOTCOMMAND \
 	RUN_BOOT_RAM \
 	"if run loadbootenv; then " \
-	  "echo Loaded environment from ${bootenv};" \
-	  "env import -t ${scriptaddr} ${filesize};" \
-	"fi;" \
-	"if test -n \\\"${uenvcmd}\\\"; then " \
-	  "echo Running uenvcmd ...;" \
-	  "run uenvcmd;" \
-	"fi;" \
-	"if run loadbootscr; then "\
-	  "echo Jumping to ${bootscr};" \
-	  "source ${scriptaddr};" \
+	  "env import -t 0x44000000 " \
+	  "run autoboot;" \
 	"fi;" \
 	"run autoboot;" \
 	""
@@ -225,7 +221,7 @@
 	  "\0" \
 	"loadkernel=" \
 	  "if "\
-	    "bootpath=/boot/" \
+	    "bootpath=/" \
 	    " && " \
 	    "ext2load $device $partition 0x43000000 ${bootpath}script.bin" \
 	    " && " \
