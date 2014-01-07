@@ -96,7 +96,32 @@ void sunxi_board_init(void)
 	int power_failed = 0;
 	unsigned long ramsize;
 
-	printf("DRAM:");
+
+#ifdef CONFIG_AXP209_POWER
+	power_failed |= axp209_init();
+
+	axp209_write(0xf4, 0x06);
+	axp209_write(0xf2, 0x04);
+	axp209_write(0xff, 0x01);
+	axp209_write(0x3, 0x00);
+	axp209_write(0x4, 0x00);
+
+	axp209_write(0xff, 0x00);
+	axp209_write(0xf4, 0x00);
+
+	power_failed |= axp209_set_dcdc2(1400);
+#ifdef CONFIG_FAST_MBUS
+	power_failed |= axp209_set_dcdc3(1300);
+#else
+	power_failed |= axp209_set_dcdc3(1250);
+#endif
+	power_failed |= axp209_set_ldo2(3000);
+	power_failed |= axp209_set_ldo3(2800);
+	power_failed |= axp209_set_ldo4(2800);
+#endif
+
+
+	printf("dram:");
 	ramsize = sunxi_dram_init();
 	if (!ramsize) {
 		printf(" ?");
@@ -116,18 +141,6 @@ void sunxi_board_init(void)
 	power_failed |= axp152_set_dcdc3(1500);
 	power_failed |= axp152_set_dcdc4(1250);
 	power_failed |= axp152_set_ldo2(3000);
-#endif
-#ifdef CONFIG_AXP209_POWER
-	power_failed |= axp209_init();
-	power_failed |= axp209_set_dcdc2(1400);
-#ifdef CONFIG_FAST_MBUS
-	power_failed |= axp209_set_dcdc3(1300);
-#else
-	power_failed |= axp209_set_dcdc3(1250);
-#endif
-	power_failed |= axp209_set_ldo2(3000);
-	power_failed |= axp209_set_ldo3(2800);
-	power_failed |= axp209_set_ldo4(2800);
 #endif
 
 	/*
